@@ -6,65 +6,67 @@ API_URL = "http://localhost:8000"
 
 st.set_page_config(page_title="Malaria Cell Classifier", layout="wide", page_icon="🔬")
 
-# custom styling: lab-inspired palette, distinct typography, clean cards
+# dark lab theme: deep teal-black background, teal accent, coral for infected, sage for healthy
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap');
 
-html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-h1, h2, h3 { font-family: 'Space Grotesk', sans-serif !important; }
-
-.main { background-color: #FAFAF7; }
+.stApp { background-color: #0F1A18; }
+html, body, [class*="css"], p, span, label, div { font-family: 'Inter', sans-serif; color: #E4E9E7; }
+h1, h2, h3 { font-family: 'Space Grotesk', sans-serif !important; color: #E4E9E7 !important; }
 
 .app-header {
-    padding: 1.5rem 0 0.5rem 0;
-    border-bottom: 2px solid #0E4B4F;
+    padding: 1.5rem 0 1rem 0;
+    border-bottom: 2px solid #2DD4BF;
     margin-bottom: 1.5rem;
 }
-.app-header h1 {
-    color: #0E4B4F;
-    font-weight: 700;
-    margin-bottom: 0.2rem;
-}
-.app-header p {
-    color: #5A6B6D;
-    font-size: 0.95rem;
-}
+.app-header h1 { color: #2DD4BF !important; font-weight: 700; margin-bottom: 0.3rem; }
+.app-header p { color: #9BB0AC; font-size: 0.95rem; }
 
 .result-card {
     padding: 1.2rem 1.5rem;
-    border-radius: 8px;
+    border-radius: 10px;
     border-left: 5px solid;
     margin-top: 1rem;
     font-size: 1.05rem;
 }
-.result-parasitized {
-    background-color: #FBEAE8;
-    border-color: #C1443B;
-    color: #7A2A22;
-}
-.result-uninfected {
-    background-color: #EAF2ED;
-    border-color: #4C7A63;
-    color: #2E4D3D;
-}
+.result-parasitized { background-color: #2A1414; border-color: #E5484D; color: #FFB4B4; }
+.result-uninfected { background-color: #12261C; border-color: #5FBF8C; color: #B7EBCB; }
 
+/* explicit tab colors so nothing blends into the dark background */
+.stTabs [data-baseweb="tab-list"] { gap: 8px; }
 .stTabs [data-baseweb="tab"] {
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 500;
+    color: #9BB0AC !important;
+    background-color: #182924;
+    border-radius: 6px 6px 0 0;
+    padding: 8px 16px;
+}
+.stTabs [aria-selected="true"] {
+    color: #2DD4BF !important;
+    background-color: #1F3831 !important;
+    border-bottom: 2px solid #2DD4BF !important;
 }
 
 .stButton button {
-    background-color: #0E4B4F;
-    color: white;
+    background-color: #2DD4BF;
+    color: #0F1A18;
     border-radius: 6px;
     border: none;
-    font-weight: 500;
+    font-weight: 600;
 }
-.stButton button:hover {
-    background-color: #0A3538;
-    color: white;
+.stButton button:hover { background-color: #21B3A0; color: #0F1A18; }
+
+[data-testid="stMetric"] {
+    background-color: #182924;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #2A423B;
 }
+[data-testid="stMetricValue"] { color: #2DD4BF !important; }
+
+.stFileUploader section { background-color: #182924; border: 1px dashed #2A423B; border-radius: 8px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -105,7 +107,7 @@ with tab1:
                 except requests.exceptions.ConnectionError:
                     st.error("Cannot reach API. Make sure it's running.")
 
-#  Visualizations tab
+# Visualizations tab
 with tab2:
     st.subheader("Dataset insights")
     col1, col2, col3 = st.columns(3)
@@ -125,7 +127,7 @@ with tab2:
     """)
     st.info("Full distribution plots are in notebook/malaria_cnn.ipynb on GitHub.")
 
-# Upload & Retrain tab 
+# Upload & Retrain tab
 with tab3:
     st.subheader("Upload bulk data for retraining")
     label_choice = st.selectbox("Label for these images", ["Parasitized", "Uninfected"])
