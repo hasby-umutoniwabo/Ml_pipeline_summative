@@ -151,15 +151,17 @@ with tab3:
     if st.button("Start Retraining"):
         with st.spinner("Retraining in progress..."):
             try:
-                response = requests.post(f"{API_URL}/retrain", params={"epochs": epochs})
+                response = requests.post(f"{API_URL}/retrain", params={"epochs": epochs}, timeout=120)
                 if response.status_code == 200:
                     result = response.json()
                     st.success(f"Retrained for {result['epochs']} epochs. "
                                f"Final accuracy: {result['final_accuracy']}, final loss: {result['final_loss']}")
                 else:
-                    st.error(f"API error: {response.text}")
+                    st.error(f"API error (status {response.status_code}): {response.text or 'No response body — likely a server timeout or crash.'}")
             except requests.exceptions.ConnectionError:
                 st.error("Cannot reach API. Make sure it's running.")
+            except requests.exceptions.Timeout:
+                st.error("Request timed out. Retraining may be too resource-intensive for this server.")
 
 # Uptime tab 
 with tab4:
