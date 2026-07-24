@@ -81,18 +81,17 @@ async def upload_bulk(label: str, files: list[UploadFile] = File(...)):
 
 @app.post("/retrain")
 def trigger_retrain(epochs: int = 5):
-    # fine-tunes the existing model on everything currently in data/uploads/
+    # fine-tunes the existing model, then evaluates it, demonstrates evaluation in production
     global model
     try:
-        model, history = retrain_model(MODEL_PATH, UPLOAD_DIR, epochs=epochs)
+        model, history, eval_metrics = retrain_model(MODEL_PATH, UPLOAD_DIR, epochs=epochs)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    final_accuracy = float(history.history["accuracy"][-1])
-    final_loss = float(history.history["loss"][-1])
     return {
         "status": "retrained",
         "epochs": epochs,
-        "final_accuracy": round(final_accuracy, 4),
-        "final_loss": round(final_loss, 4)
+        "training_final_accuracy": round(float(history.history["accuracy"][-1]), 4),
+        "training_final_loss": round(float(history.history["loss"][-1]), 4),
+        "evaluation_metrics": eval_metrics
     }

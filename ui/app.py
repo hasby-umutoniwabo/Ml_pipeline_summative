@@ -1,8 +1,8 @@
 """Streamlit UI: prediction, visualizations, uptime, upload and retrain controls."""
 import streamlit as st
 import requests
-
 import os
+
 API_URL = os.environ.get("API_URL", "http://localhost:8000")
 
 st.set_page_config(page_title="Malaria Cell Classifier", layout="wide", page_icon="🔬")
@@ -80,7 +80,7 @@ st.markdown("""
 
 tab1, tab2, tab3, tab4 = st.tabs(["Predict", "Visualizations", "Upload & Retrain", "Model Uptime"])
 
-# Predict tab 
+# Predict tab
 with tab1:
     st.subheader("Predict a single cell image")
     uploaded_file = st.file_uploader("Upload a cell image", type=["png", "jpg", "jpeg"])
@@ -154,8 +154,11 @@ with tab3:
                 response = requests.post(f"{API_URL}/retrain", params={"epochs": epochs}, timeout=120)
                 if response.status_code == 200:
                     result = response.json()
-                    st.success(f"Retrained for {result['epochs']} epochs. "
-                               f"Final accuracy: {result['final_accuracy']}, final loss: {result['final_loss']}")
+                    st.success(f"Retrained for {result['epochs']} epochs.")
+                    st.write("**Production evaluation metrics (on uploaded data):**")
+                    st.json(result["evaluation_metrics"])
+                    st.caption(f"Training final accuracy: {result['training_final_accuracy']}, "
+                               f"training final loss: {result['training_final_loss']}")
                 else:
                     st.error(f"API error (status {response.status_code}): {response.text or 'No response body — likely a server timeout or crash.'}")
             except requests.exceptions.ConnectionError:
@@ -163,7 +166,7 @@ with tab3:
             except requests.exceptions.Timeout:
                 st.error("Request timed out. Retraining may be too resource-intensive for this server.")
 
-# Uptime tab 
+# Uptime tab
 with tab4:
     st.subheader("Model / API uptime")
     if st.button("Refresh Status"):

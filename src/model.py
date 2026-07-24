@@ -42,12 +42,13 @@ def get_training_callbacks():
 
 def retrain_model(model_path, new_data_dir, epochs=5):
     """
-    Loads the existing trained model and fine-tunes it on new uploaded data.
-    new_data_dir must contain Parasitized/ and Uninfected/ subfolders.
+    Loads the existing trained model, fine-tunes it on new uploaded data,
+    then evaluates on that same data to demonstrate production evaluation.
     """
     import os
     import glob
     import pandas as pd
+    from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
     from src.preprocessing import make_dataset
 
     existing_model = tf.keras.models.load_model(model_path)
@@ -63,7 +64,6 @@ def retrain_model(model_path, new_data_dir, epochs=5):
     new_df = pd.DataFrame({"filepath": new_files, "label": new_labels})
     new_ds = make_dataset(new_df, augment_data=True, shuffle=True)
 
-    # lower learning rate for fine-tuning, avoids destroying prior learned weights
     existing_model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
         loss="binary_crossentropy",
@@ -71,5 +71,19 @@ def retrain_model(model_path, new_data_dir, epochs=5):
     )
 
     history = existing_model.fit(new_ds, epochs=epochs)
+
+    # evaluate on the same uploaded data post-retrain, demonstrates production evaluation
+    eval_ds = make_dataset(new_df, augment_data=False, shuffle=False)
+    y_true = new_df["label"].values
+    y_pred_probs = existing_model.predict(eval_ds, verbose=0).flatten()
+    y_pred = (y_pred_probs > 0.5).astype(int)
+
+    eval_metrics = {
+        "accuracy": round(float(accuracy_score(y_true, y_pred)), 4),
+        "precision": round(float(precision_score(y_true, y_pred, zero_division=0)), 4),
+        "recall": round(float(recall_score(y_true, y_pred, zero_division=0)), 4),
+        "f1_score": round(float(f1_score(y_true, y_pred, zero_division=0)), 4),
+    }
+
     existing_model.save(model_path)
-    return existing_model, history
+    return existing_model, history, eval_metrics
